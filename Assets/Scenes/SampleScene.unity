@@ -186,7 +186,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 480048884}
-  moveSpeed: 4
+  moveSpeed: 2
   jumpHeight: 1
   gravity: -9.81
   tongueDistanceMax: 2
