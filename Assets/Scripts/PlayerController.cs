@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float gravity = -9.81f;
 
     [SerializeField] GameObject tongueTip;
+    [SerializeField] GameObject tongueBase;
     [SerializeField] float tongueExtendDuration = 1.0f;
     [SerializeField] float tongueDistanceMax = 2.0f;
     private Vector3 tongueEndPosition; 
@@ -33,6 +34,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         currentState = playerState.normal;
+        facing = 1;
     }
 
     // Update is called once per frame
@@ -89,8 +91,10 @@ public class PlayerController : MonoBehaviour
 
                 break;
 
+            //Tongue Extention State
             case playerState.extend:
 
+                //Freeze player movement
                 velocity = Vector3.zero;
                 
                 elapsedExtendTime += Time.deltaTime;
@@ -99,12 +103,35 @@ public class PlayerController : MonoBehaviour
                 Vector3 startPosition = new Vector3(transform.position.x, transform.position.y, 0);
                 tongueEndPosition = new Vector3(transform.position.x + tongueDistanceMax * facing, transform.position.y + tongueDistanceMax, 0);
 
+                //Lerp tongue tip extend position
                 tongueTip.transform.position = Vector3.Lerp(startPosition, tongueEndPosition, percentComplete);
 
+                //Stretch tongue base to tip
+                Vector3 startPos = transform.position;
+                Vector3 endPos = tongueTip.transform.position;
+
+                //Math tongue stretch
+                Vector3 tongueCenter = new Vector3(startPos.x + endPos.x, startPos.y + endPos.y) / 2f;
+                float tongueXScale = Mathf.Abs(startPos.x - endPos.x);
+                float tongueYScale = Mathf.Abs(startPos.y - endPos.y);
+                float tongueTrueScale = Mathf.Sqrt((tongueXScale * tongueXScale) + (tongueYScale * tongueYScale)) / 2; //Scale is divided by 2 to adjust for cylinder height
+
+                //Apply tongue stretch
+                tongueBase.transform.position = tongueCenter;
+                tongueBase.transform.localScale = new Vector3(0.1f, tongueTrueScale, 0.1f);
+                tongueBase.transform.rotation = Quaternion.Euler(0, 0, -45 * facing);
+
+                //Check if fully extended
                 if (tongueTip.transform.position == tongueEndPosition)
                 {
+                    //Change State
                     currentState = playerState.normal;
+
+                    //Reset Tongue
                     tongueTip.transform.position = transform.position;
+                    tongueBase.transform.position = transform.position;
+                    tongueBase.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+                    tongueBase.transform.rotation = Quaternion.Euler(0, 0, 0);
                 }
 
                 break;
