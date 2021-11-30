@@ -6,21 +6,25 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] CharacterController controller;
 
-    [SerializeField] float moveSpeed = 4.0f;
+    [SerializeField] float moveSpeed = 2.0f;
+    [SerializeField] float airMoveSpeed = 0.05f;
     [SerializeField] float jumpHeight = 4.0f;
     [SerializeField] float gravity = -9.81f;
 
     [SerializeField] GameObject tongueTip;
     [SerializeField] float tongueExtendDuration = 1.0f;
     [SerializeField] float tongueDistanceMax = 2.0f;
+    private Vector3 tongueEndPosition; 
     private float elapsedExtendTime;
 
     [SerializeField] LayerMask terrainMask;
     [SerializeField] Transform groundCheck;
     [SerializeField] float groundDistance = 0.4f;
+    [SerializeField] GameObject artGroup;
 
     Vector3 velocity;
     bool isGrounded;
+    private int facing;
     
     enum playerState {normal, extend, grapple, tumble, splat}
     private playerState currentState;
@@ -48,9 +52,27 @@ public class PlayerController : MonoBehaviour
                     velocity.y = -2f;
                     velocity.x = x * moveSpeed;
                 }
+                //Air movement
+                else if (!isGrounded)
+                {
+                    velocity.x += x * airMoveSpeed;
+                    velocity.x = Mathf.Clamp(velocity.x, -moveSpeed, moveSpeed);
+                }
+
+                //Adjust Facing
+                if (x > 0)
+                {
+                    facing = 1;
+                    artGroup.transform.rotation = Quaternion.Euler(0, 0, 0);
+                }
+                else if (x < 0)
+                {
+                    facing = -1;
+                    artGroup.transform.rotation = Quaternion.Euler(0, 180, 0);
+                }
 
                 //Jump
-                if ((Input.GetKeyDown(KeyCode.X) || Input.GetButtonDown("Jump")) && isGrounded)
+                if ((Input.GetKeyDown(KeyCode.Z) || Input.GetButtonDown("Jump")) && isGrounded)
                 {
                     velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
                 }
@@ -62,11 +84,28 @@ public class PlayerController : MonoBehaviour
                 {
                     elapsedExtendTime = 0;
                     currentState = playerState.extend;
+                    break;
                 }
 
                 break;
 
             case playerState.extend:
+
+                velocity = Vector3.zero;
+                
+                elapsedExtendTime += Time.deltaTime;
+                float percentComplete = elapsedExtendTime / tongueExtendDuration;
+
+                Vector3 startPosition = new Vector3(transform.position.x, transform.position.y, 0);
+                tongueEndPosition = new Vector3(transform.position.x + tongueDistanceMax * facing, transform.position.y + tongueDistanceMax, 0);
+
+                tongueTip.transform.position = Vector3.Lerp(startPosition, tongueEndPosition, percentComplete);
+
+                if (tongueTip.transform.position == tongueEndPosition)
+                {
+                    currentState = playerState.normal;
+                    tongueTip.transform.position = transform.position;
+                }
 
                 break;
 
