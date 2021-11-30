@@ -7,8 +7,13 @@ public class CameraBehavior : MonoBehaviour
     [SerializeField] GameObject ObjectToTrack;
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
-        transform.position = new Vector3(0, ObjectToTrack.transform.position.y + 2.0f, -10);
+        transform.position = new Vector3(0, ObjectToTrack.transform.position.y, -14);
+
+        if (transform.position.y <= 2)
+        {
+            transform.position = new Vector3(0, 2, -14);
+        }
     }
 }
