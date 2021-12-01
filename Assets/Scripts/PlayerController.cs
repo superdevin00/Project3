@@ -13,8 +13,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] LayerMask pullRingMask;
     [SerializeField] Transform groundCheck;
     [SerializeField] Transform wallCheck;
+
+    [Header("Feedback References")]
     [SerializeField] ParticleSystem landPart;
     [SerializeField] ParticleSystem tongueTouchPart;
+    [SerializeField] AudioClip landSound;
+    [SerializeField] AudioClip impactSound;
+    [SerializeField] AudioClip extendSound;
+    [SerializeField] AudioClip tongueImpactSound;
+    [SerializeField] AudioClip jumpSound;
+    [SerializeField] float sfxVolume = 0.1f;
 
     [Header("Movement Stats")]
     [SerializeField] float moveSpeed = 2.0f;
@@ -126,6 +134,7 @@ public class PlayerController : MonoBehaviour
                 //Jump
                 if ((Input.GetKeyDown(KeyCode.Z) || Input.GetButtonDown("Jump")) && isGrounded)
                 {
+                    AudioSource.PlayClipAtPoint(jumpSound, transform.position, sfxVolume);
                     velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
                 }
 
@@ -137,6 +146,7 @@ public class PlayerController : MonoBehaviour
                 {
                     elapsedExtendTime = 0;
                     currentState = playerState.extend;
+                    AudioSource.PlayClipAtPoint(extendSound, transform.position, sfxVolume);
                     isToungeCollide = false;
                     break;
                 }
@@ -193,6 +203,7 @@ public class PlayerController : MonoBehaviour
                 else //When we touch the wall with our tongue
                 {
                     tongueStop = tongueTip.transform.position;
+                    AudioSource.PlayClipAtPoint(tongueImpactSound, transform.position, sfxVolume);
                     Instantiate(tongueTouchPart, tongueStop, Quaternion.Euler(0, 0, 0));
                     currentState = playerState.grapple;
                     isWallTouch = false;
@@ -281,10 +292,12 @@ public class PlayerController : MonoBehaviour
                     velocity.x *= -0.6f;
                     facing = facing * -1;
                     wallDistance = 0.0f;
+                    AudioSource.PlayClipAtPoint(impactSound, transform.position, sfxVolume);
                 }
                 else if (isWallTouch && isCeilingNormal && velocity.y > 0)//Ceiling bounce
                 {
                     velocity.y *= -0.5f;
+                    AudioSource.PlayClipAtPoint(impactSound, transform.position, sfxVolume);
                 }
                 else
                 {
@@ -294,6 +307,7 @@ public class PlayerController : MonoBehaviour
                 //Check if grounded
                 if (isGrounded && !isGroundSlope && velocity.y < 0 && isWallTouch) //Land on solid ground
                 {
+                    AudioSource.PlayClipAtPoint(landSound, transform.position, sfxVolume);
                     Instantiate(landPart, groundCheck.transform.position, Quaternion.Euler(-90, 0, 0));
                     slopeLimit = 50;
                     currentState = playerState.normal;
