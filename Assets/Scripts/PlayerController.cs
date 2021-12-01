@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject artGroup;
     [SerializeField] LayerMask terrainMask;
     [SerializeField] LayerMask tongueMask;
+    [SerializeField] LayerMask pullRingMask;
     [SerializeField] Transform groundCheck;
     [SerializeField] Transform wallCheck;
 
@@ -53,7 +54,7 @@ public class PlayerController : MonoBehaviour
     private int facing;
     Vector3 hitNormal;
     
-    enum playerState {normal, extend, grapple, tumble, splat}
+    public enum playerState {normal, extend, grapple, tumble, splat}
     private playerState currentState;
     private bool isToungeCollide;
 
@@ -195,7 +196,7 @@ public class PlayerController : MonoBehaviour
                     isTongueTouch = false;
                 }
 
-                isToungeCollide = Physics.CheckSphere(tongueTip.transform.position, tongueTip.transform.localScale.x, terrainMask);
+                isToungeCollide = Physics.CheckSphere(tongueTip.transform.position, tongueTip.transform.localScale.x, terrainMask) || Physics.CheckSphere(tongueTip.transform.position, tongueTip.transform.localScale.x, pullRingMask);
                 break;
             #endregion
 
@@ -378,5 +379,10 @@ public class PlayerController : MonoBehaviour
     public void setTongueColide(bool setCollide)
     {
         isToungeCollide = setCollide;
+    }
+
+    public void setCurrentState(playerState state)
+    {
+        currentState = state;
     }
 }
