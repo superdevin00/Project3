@@ -23,6 +23,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float slideFriction = 0.3f;
     [SerializeField] float minimumBounceVelocityX = 3.0f;
     [SerializeField] float minimumBounceVelocityY = 7.0f;
+    [SerializeField] float grappleMomentumMultiplierX = 1.0f;
+    [SerializeField] float grappleMomentumMultiplierY = 1.0f;
 
     [Header("Tongue")]
     [SerializeField] GameObject tongueTip;
@@ -44,6 +46,8 @@ public class PlayerController : MonoBehaviour
     bool isWallTouch;
     bool isTongueTouch;
     bool slopeStop;
+    bool isWallNormal;
+    bool isCeilingNormal;
     float lastYValue;
     float tumbleRotate = 0;
     private int facing;
@@ -74,12 +78,12 @@ public class PlayerController : MonoBehaviour
         if (facing == 1)
         {
             artGroup.transform.rotation = Quaternion.Euler(0, 0, 0);
-            wallCheck.localPosition = new Vector3(0.1f,0.1f,0);
+            wallCheck.localPosition = new Vector3(0.2f,0.0f,0);
         }
         else if (facing == -1)
         {
             artGroup.transform.rotation = Quaternion.Euler(0, 180, 0);
-            wallCheck.localPosition = new Vector3(-0.1f, 0.1f, 0);
+            wallCheck.localPosition = new Vector3(-0.2f, 0.0f, 0);
         }
 
         //Player State Machine
@@ -199,8 +203,8 @@ public class PlayerController : MonoBehaviour
             case playerState.grapple:
                 
                 
-                //When we are pulled to our tongue
-                if (transform.position == tongueStop || isTongueTouch)
+                //When we are pulled to our tongue or we release early
+                if (transform.position == tongueStop || isTongueTouch || !Input.GetKey(KeyCode.X))
                 {
                     //Change State
                     currentState = playerState.tumble;
@@ -211,6 +215,10 @@ public class PlayerController : MonoBehaviour
                     tongueBase.transform.position = transform.position;
                     tongueBase.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
                     tongueBase.transform.rotation = Quaternion.Euler(0, 0, 0);
+
+                    //Velocity Multiplier
+                    velocity.x = velocity.x * grappleMomentumMultiplierX;
+                    velocity.y = velocity.y * grappleMomentumMultiplierY;
 
                     //Minimum Speed
                     if (Mathf.Abs(velocity.x) < minimumBounceVelocityX)
@@ -246,7 +254,7 @@ public class PlayerController : MonoBehaviour
 
                 }
 
-                isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
+                //isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
                 isTongueTouch = Physics.CheckSphere(wallCheck.position, tongueDistance, tongueMask);
 
                 break;
@@ -263,7 +271,7 @@ public class PlayerController : MonoBehaviour
 
                 slopeLimit = 5;
 
-                if (isWallTouch)
+                if (isWallTouch /*&& isWallNormal &&*/ && !isCeilingNormal)
                 {
                     velocity.x *= -0.6f;
                     facing = facing * -1;
@@ -274,7 +282,7 @@ public class PlayerController : MonoBehaviour
                     wallDistance = 0.15f;
                 }
 
-                if (isGrounded && !isGroundSlope)
+                if (isGrounded && !isGroundSlope && velocity.y < 0)
                 {
                     slopeLimit = 50;
                     currentState = playerState.normal;
@@ -325,18 +333,22 @@ public class PlayerController : MonoBehaviour
         }
         //Move
         controller.Move(velocity * Time.deltaTime);
-       /* if (currentState == playerState.tumble)
-        {
-            isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
-            isTongueTouch = Physics.CheckSphere(wallCheck.position, wallDistance, tongueMask);
-        }
-        else
-        {
-            isWallTouch = false;
-            isTongueTouch = false;
-        }*/
+      
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, terrainMask);
         isGroundSlope = Vector3.Angle(Vector3.up, hitNormal) > slopeLimit;
+
+        if (Vector3.Angle(Vector3.up, hitNormal) >= 80 || Vector3.Angle(Vector3.up, hitNormal) <= 100) //Hit wall
+        {
+            isWallNormal = true;
+            isCeilingNormal = false;
+        }
+        else if (Vector3.Angle(Vector3.up, hitNormal) >= 170 || Vector3.Angle(Vector3.up, hitNormal) <= 190) //Hit Ceiling
+        {
+            isCeilingNormal = true;
+            isWallNormal = false;
+        }
+        
+        Debug.Log(Vector3.Angle(Vector3.up, hitNormal));
     }
     void OnControllerColliderHit(ControllerColliderHit hit)
     {
