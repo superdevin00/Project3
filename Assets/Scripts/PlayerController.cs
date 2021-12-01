@@ -29,12 +29,14 @@ public class PlayerController : MonoBehaviour
     
     enum playerState {normal, extend, grapple, tumble, splat}
     private playerState currentState;
+    private bool isToungeCollide;
 
 
     private void Start()
     {
         currentState = playerState.normal;
         facing = 1;
+        isToungeCollide = false;
     }
 
     // Update is called once per frame
@@ -86,6 +88,7 @@ public class PlayerController : MonoBehaviour
                 {
                     elapsedExtendTime = 0;
                     currentState = playerState.extend;
+                    isToungeCollide = false;
                     break;
                 }
 
@@ -93,47 +96,50 @@ public class PlayerController : MonoBehaviour
 
             //Tongue Extention State
             case playerState.extend:
+                isToungeCollide = Physics.CheckSphere(tongueTip.transform.position, tongueTip.transform.localScale.x,terrainMask);
 
-                //Freeze player movement
-                velocity = Vector3.zero;
-                
-                elapsedExtendTime += Time.deltaTime;
-                float percentComplete = elapsedExtendTime / tongueExtendDuration;
-
-                Vector3 startPosition = new Vector3(transform.position.x, transform.position.y, 0);
-                tongueEndPosition = new Vector3(transform.position.x + tongueDistanceMax * facing, transform.position.y + tongueDistanceMax, 0);
-
-                //Lerp tongue tip extend position
-                tongueTip.transform.position = Vector3.Lerp(startPosition, tongueEndPosition, percentComplete);
-
-                //Stretch tongue base to tip
-                Vector3 startPos = transform.position;
-                Vector3 endPos = tongueTip.transform.position;
-
-                //Math tongue stretch
-                Vector3 tongueCenter = new Vector3(startPos.x + endPos.x, startPos.y + endPos.y) / 2f;
-                float tongueXScale = Mathf.Abs(startPos.x - endPos.x);
-                float tongueYScale = Mathf.Abs(startPos.y - endPos.y);
-                float tongueTrueScale = Mathf.Sqrt((tongueXScale * tongueXScale) + (tongueYScale * tongueYScale)) / 2; //Scale is divided by 2 to adjust for cylinder height
-
-                //Apply tongue stretch
-                tongueBase.transform.position = tongueCenter;
-                tongueBase.transform.localScale = new Vector3(0.1f, tongueTrueScale, 0.1f);
-                tongueBase.transform.rotation = Quaternion.Euler(0, 0, -45 * facing);
-
-                //Check if fully extended
-                if (tongueTip.transform.position == tongueEndPosition)
+                if (!isToungeCollide)
                 {
-                    //Change State
-                    currentState = playerState.normal;
+                    //Freeze player movement
+                    velocity = Vector3.zero;
 
-                    //Reset Tongue
-                    tongueTip.transform.position = transform.position;
-                    tongueBase.transform.position = transform.position;
-                    tongueBase.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-                    tongueBase.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    elapsedExtendTime += Time.deltaTime;
+                    float percentComplete = elapsedExtendTime / tongueExtendDuration;
+
+                    Vector3 startPosition = new Vector3(transform.position.x, transform.position.y, 0);
+                    tongueEndPosition = new Vector3(transform.position.x + tongueDistanceMax * facing, transform.position.y + tongueDistanceMax, 0);
+
+                    //Lerp tongue tip extend position
+                    tongueTip.transform.position = Vector3.Lerp(startPosition, tongueEndPosition, percentComplete);
+
+                    //Stretch tongue base to tip
+                    Vector3 startPos = transform.position;
+                    Vector3 endPos = tongueTip.transform.position;
+
+                    //Math tongue stretch
+                    Vector3 tongueCenter = new Vector3(startPos.x + endPos.x, startPos.y + endPos.y) / 2f;
+                    float tongueXScale = Mathf.Abs(startPos.x - endPos.x);
+                    float tongueYScale = Mathf.Abs(startPos.y - endPos.y);
+                    float tongueTrueScale = Mathf.Sqrt((tongueXScale * tongueXScale) + (tongueYScale * tongueYScale)) / 2; //Scale is divided by 2 to adjust for cylinder height
+
+                    //Apply tongue stretch
+                    tongueBase.transform.position = tongueCenter;
+                    tongueBase.transform.localScale = new Vector3(0.1f, tongueTrueScale, 0.1f);
+                    tongueBase.transform.rotation = Quaternion.Euler(0, 0, -45 * facing);
+
+                    //Check if fully extended
+                    if (tongueTip.transform.position == tongueEndPosition)
+                    {
+                        //Change State
+                        currentState = playerState.normal;
+
+                        //Reset Tongue
+                        tongueTip.transform.position = transform.position;
+                        tongueBase.transform.position = transform.position;
+                        tongueBase.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+                        tongueBase.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    }
                 }
-
                 break;
 
             case playerState.grapple:
@@ -159,5 +165,10 @@ public class PlayerController : MonoBehaviour
     {
         //Move
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    public void setTongueColide(bool setCollide)
+    {
+        isToungeCollide = setCollide;
     }
 }
