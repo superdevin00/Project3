@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float jumpHeight = 4.0f;
     [SerializeField] float gravity = -9.81f;
     [SerializeField] float grappleAccel = 0.4f;
+    [SerializeField] float slopeLimit = 50;
+    [SerializeField] float slideFriction = 0.3f;
 
     [Header("Tongue")]
     [SerializeField] GameObject tongueTip;
@@ -34,7 +37,11 @@ public class PlayerController : MonoBehaviour
     Vector3 velocity;
     Vector3 tongueStop;
     bool isGrounded;
+    bool isGroundSlope;
+    bool isWallTouch;
+    bool isTongueTouch;
     private int facing;
+    Vector3 hitNormal;
     
     enum playerState {normal, extend, grapple, tumble, splat}
     private playerState currentState;
@@ -51,6 +58,23 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Reset scene
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        //Turn art for facing value
+        if (facing == 1)
+        {
+            artGroup.transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+        else if (facing == -1)
+        {
+            artGroup.transform.rotation = Quaternion.Euler(0, 180, 0);
+        }
+
+        //Player State Machine
         switch (currentState)
         {
             //Normal Player State
@@ -76,12 +100,12 @@ public class PlayerController : MonoBehaviour
                 if (x > 0)
                 {
                     facing = 1;
-                    artGroup.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    
                 }
                 else if (x < 0)
                 {
                     facing = -1;
-                    artGroup.transform.rotation = Quaternion.Euler(0, 180, 0);
+                 
                 }
 
                 //Jump
@@ -140,7 +164,7 @@ public class PlayerController : MonoBehaviour
                     if (tongueTip.transform.position == tongueEndPosition)
                     {
                         //Change State
-                        currentState = playerState.normal;
+                        currentState = playerState.tumble;
 
                         //Reset Tongue
                         tongueTip.transform.position = transform.position;
@@ -159,8 +183,8 @@ public class PlayerController : MonoBehaviour
 
             //Grapple State
             case playerState.grapple:
-                bool isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
-                bool isTongueTouch = Physics.CheckSphere(wallCheck.position, wallDistance, tongueMask);
+                isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
+                isTongueTouch = Physics.CheckSphere(wallCheck.position, wallDistance, tongueMask);
                 
                 //When we are pulled to our tongue
                 if (transform.position == tongueStop || isTongueTouch)
@@ -200,18 +224,37 @@ public class PlayerController : MonoBehaviour
             case playerState.tumble:
 
                 isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
-                isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, terrainMask);
-
-                controller.slopeLimit = 5;
+                //isGrounded = (Vector3.Angle(Vector3.up, hitNormal) <= slopeLimit);
+                //bool isGroundSlope = true;
+                
+                /*foreach(var collider in Physics.OverlapSphere(groundCheck.position, groundDistance, terrainMask))
+                {
+                    if (collider.transform.rotation.eulerAngles != Vector3.zero)
+                    {
+                        isGroundSlope = true;
+                    }
+                    else
+                    {
+                        isGroundSlope = false;
+                    }
+                }
+                */
+                slopeLimit = 5;
 
                 if (isWallTouch)
                 {
-                    velocity.x *= -0.8f;
+                    velocity.x *= -0.6f;
+                    facing = facing * -1;
+                    wallDistance = 0.1f;
+                }
+                else
+                {
+                    wallDistance = 0.25f;
                 }
 
-                if (isGrounded)
+                if (isGrounded && !isGroundSlope)
                 {
-                    controller.slopeLimit = 45;
+                    slopeLimit = 50;
                     currentState = playerState.normal;
                 }
                 else
@@ -233,8 +276,19 @@ public class PlayerController : MonoBehaviour
         
     private void FixedUpdate()
     {
+        if (isGroundSlope && isGrounded)
+        {
+            velocity.x += (1f - hitNormal.y) * hitNormal.x * (1f - slideFriction);
+            //inpRes.speed.z += (1f - hitNormal.y) * hitNormal.z * (1f - slideFriction);
+        }
         //Move
         controller.Move(velocity * Time.deltaTime);
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, terrainMask);
+        isGroundSlope = Vector3.Angle(Vector3.up, hitNormal) > slopeLimit;
+    }
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        hitNormal = hit.normal;
     }
 
     public void setTongueColide(bool setCollide)
