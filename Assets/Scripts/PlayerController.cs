@@ -271,7 +271,7 @@ public class PlayerController : MonoBehaviour
 
                 slopeLimit = 5;
 
-                if (isWallTouch /*&& isWallNormal &&*/ && !isCeilingNormal)
+                /*if (isWallTouch /*&& isWallNormal && && !isCeilingNormal)
                 {
                     velocity.x *= -0.6f;
                     facing = facing * -1;
@@ -280,7 +280,23 @@ public class PlayerController : MonoBehaviour
                 else
                 {
                     wallDistance = 0.15f;
+                }*/
+
+                if (isWallTouch && isWallNormal &&  !isGroundSlope)
+                {
+                    velocity.x *= -0.6f;
+                    facing = facing * -1;
+                    wallDistance = 0.0f;
                 }
+                else if (isWallTouch && isCeilingNormal && velocity.y > 0)
+                {
+                    velocity.y *= -0.5f;
+                }
+                else
+                {
+                    wallDistance = 0.15f;
+                }
+                
 
                 if (isGrounded && !isGroundSlope && velocity.y < 0)
                 {
@@ -307,8 +323,8 @@ public class PlayerController : MonoBehaviour
                 {
                     velocity.y += gravity * Time.deltaTime;
                 }
-
-                isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
+                isWallTouch = false;
+                //isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
 
                 break;
             #endregion
@@ -335,24 +351,28 @@ public class PlayerController : MonoBehaviour
         controller.Move(velocity * Time.deltaTime);
       
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, terrainMask);
-        isGroundSlope = Vector3.Angle(Vector3.up, hitNormal) > slopeLimit;
+        isGroundSlope = Vector3.Angle(Vector3.up, hitNormal) > slopeLimit && Vector3.Angle(Vector3.up, hitNormal) < 90;
 
-        if (Vector3.Angle(Vector3.up, hitNormal) >= 80 || Vector3.Angle(Vector3.up, hitNormal) <= 100) //Hit wall
+        if (Vector3.Angle(Vector3.up, hitNormal) >= 80 && Vector3.Angle(Vector3.up, hitNormal) <= 100) //Hit wall
         {
             isWallNormal = true;
             isCeilingNormal = false;
         }
-        else if (Vector3.Angle(Vector3.up, hitNormal) >= 170 || Vector3.Angle(Vector3.up, hitNormal) <= 190) //Hit Ceiling
+        else if (Vector3.Angle(Vector3.up, hitNormal) >= 170 && Vector3.Angle(Vector3.up, hitNormal) <= 190) //Hit Ceiling
         {
             isCeilingNormal = true;
             isWallNormal = false;
         }
-        
+
+
+
         Debug.Log(Vector3.Angle(Vector3.up, hitNormal));
     }
     void OnControllerColliderHit(ControllerColliderHit hit)
     {
+        isWallTouch = true;
         hitNormal = hit.normal;
+
     }
 
     public void setTongueColide(bool setCollide)
