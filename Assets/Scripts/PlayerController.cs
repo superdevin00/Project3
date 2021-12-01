@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] LayerMask pullRingMask;
     [SerializeField] Transform groundCheck;
     [SerializeField] Transform wallCheck;
+    [SerializeField] ParticleSystem landPart;
+    [SerializeField] ParticleSystem tongueTouchPart;
 
     [Header("Movement Stats")]
     [SerializeField] float moveSpeed = 2.0f;
@@ -188,9 +190,10 @@ public class PlayerController : MonoBehaviour
                         tongueBase.transform.rotation = Quaternion.Euler(0, 0, 0);
                     }
                 }
-                else
+                else //When we touch the wall with our tongue
                 {
                     tongueStop = tongueTip.transform.position;
+                    Instantiate(tongueTouchPart, tongueStop, Quaternion.Euler(0, 0, 0));
                     currentState = playerState.grapple;
                     isWallTouch = false;
                     isTongueTouch = false;
@@ -272,24 +275,14 @@ public class PlayerController : MonoBehaviour
 
                 slopeLimit = 5;
 
-                /*if (isWallTouch /*&& isWallNormal && && !isCeilingNormal)
+                //Check for bounces
+                if (isWallTouch && isWallNormal &&  !isGroundSlope)//Wall bounce
                 {
                     velocity.x *= -0.6f;
                     facing = facing * -1;
                     wallDistance = 0.0f;
                 }
-                else
-                {
-                    wallDistance = 0.15f;
-                }*/
-
-                if (isWallTouch && isWallNormal &&  !isGroundSlope)
-                {
-                    velocity.x *= -0.6f;
-                    facing = facing * -1;
-                    wallDistance = 0.0f;
-                }
-                else if (isWallTouch && isCeilingNormal && velocity.y > 0)
+                else if (isWallTouch && isCeilingNormal && velocity.y > 0)//Ceiling bounce
                 {
                     velocity.y *= -0.5f;
                 }
@@ -298,15 +291,16 @@ public class PlayerController : MonoBehaviour
                     wallDistance = 0.15f;
                 }
                 
-
-                if (isGrounded && !isGroundSlope && velocity.y < 0 && isWallTouch)
+                //Check if grounded
+                if (isGrounded && !isGroundSlope && velocity.y < 0 && isWallTouch) //Land on solid ground
                 {
+                    Instantiate(landPart, groundCheck.transform.position, Quaternion.Euler(-90, 0, 0));
                     slopeLimit = 50;
                     currentState = playerState.normal;
                     tumbleRotate = 0;
                     artGroup.transform.rotation = Quaternion.Euler(0.0f, 0.0f, tumbleRotate);
                 }
-                else if(isGrounded && isGroundSlope)
+                else if(isGrounded && isGroundSlope) //Land on slope
                 {
                     if (slopeStop)
                     {
