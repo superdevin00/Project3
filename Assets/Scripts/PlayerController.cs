@@ -4,13 +4,22 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] CharacterController controller;
+    [SerializeField] GameObject artGroup;
+    [SerializeField] LayerMask terrainMask;
+    [SerializeField] LayerMask tongueMask;
+    [SerializeField] Transform groundCheck;
+    [SerializeField] Transform wallCheck;
 
+    [Header("Movement Stats")]
     [SerializeField] float moveSpeed = 2.0f;
     [SerializeField] float airMoveSpeed = 0.05f;
     [SerializeField] float jumpHeight = 4.0f;
     [SerializeField] float gravity = -9.81f;
+    [SerializeField] float grappleAccel = 0.4f;
 
+    [Header("Tongue")]
     [SerializeField] GameObject tongueTip;
     [SerializeField] GameObject tongueBase;
     [SerializeField] float tongueExtendDuration = 1.0f;
@@ -18,12 +27,12 @@ public class PlayerController : MonoBehaviour
     private Vector3 tongueEndPosition; 
     private float elapsedExtendTime;
 
-    [SerializeField] LayerMask terrainMask;
-    [SerializeField] Transform groundCheck;
-    [SerializeField] float groundDistance = 0.4f;
-    [SerializeField] GameObject artGroup;
+    [Header("Collision Variables")]
+    [SerializeField] float groundDistance = 0.1f;
+    [SerializeField] float wallDistance = 0.1f;
 
     Vector3 velocity;
+    Vector3 tongueStop;
     bool isGrounded;
     private int facing;
     
@@ -140,10 +149,42 @@ public class PlayerController : MonoBehaviour
                         tongueBase.transform.rotation = Quaternion.Euler(0, 0, 0);
                     }
                 }
+                else
+                {
+                    tongueStop = tongueTip.transform.position;
+                    currentState = playerState.grapple;
+                }
                 break;
 
-            case playerState.grapple:
 
+            //Grapple State
+            case playerState.grapple:
+                bool isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
+                bool isTongueTouch = Physics.CheckSphere(wallCheck.position, wallDistance, tongueMask);
+                if (transform.position == tongueStop || isTongueTouch)
+                {
+                    currentState = playerState.normal;
+                }
+                else
+                {
+                    velocity += new Vector3(grappleAccel * facing, grappleAccel, 0);
+                    tongueTip.transform.position = tongueStop;
+
+                    Vector3 startPos = transform.position;
+                    Vector3 endPos = tongueTip.transform.position;
+
+                    //Math tongue stretch
+                    Vector3 tongueCenter = new Vector3(startPos.x + endPos.x, startPos.y + endPos.y) / 2f;
+                    float tongueXScale = Mathf.Abs(startPos.x - endPos.x);
+                    float tongueYScale = Mathf.Abs(startPos.y - endPos.y);
+                    float tongueTrueScale = Mathf.Sqrt((tongueXScale * tongueXScale) + (tongueYScale * tongueYScale)) / 2; //Scale is divided by 2 to adjust for cylinder height
+
+                    //Apply tongue stretch
+                    tongueBase.transform.position = tongueCenter;
+                    tongueBase.transform.localScale = new Vector3(0.1f, tongueTrueScale, 0.1f);
+                    tongueBase.transform.rotation = Quaternion.Euler(0, 0, -45 * facing);
+
+                }
                 break;
 
             case playerState.tumble:
