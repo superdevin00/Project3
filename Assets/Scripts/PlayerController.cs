@@ -224,7 +224,7 @@ public class PlayerController : MonoBehaviour
                     //Minimum Speed
                     if (Mathf.Abs(velocity.x) < minimumBounceVelocityX)
                     {
-                        velocity.x = minimumBounceVelocityX * Mathf.Sign(velocity.x);
+                        velocity.x = minimumBounceVelocityX * facing;
                     }
                     if (velocity.y < minimumBounceVelocityY)
                     {
