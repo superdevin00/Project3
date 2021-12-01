@@ -40,6 +40,7 @@ public class PlayerController : MonoBehaviour
     bool isGroundSlope;
     bool isWallTouch;
     bool isTongueTouch;
+    float tumbleRotate = 0;
     private int facing;
     Vector3 hitNormal;
     
@@ -68,16 +69,18 @@ public class PlayerController : MonoBehaviour
         if (facing == 1)
         {
             artGroup.transform.rotation = Quaternion.Euler(0, 0, 0);
+            wallCheck.localPosition = new Vector3(0.1f,0.1f,0);
         }
         else if (facing == -1)
         {
             artGroup.transform.rotation = Quaternion.Euler(0, 180, 0);
+            wallCheck.localPosition = new Vector3(-0.1f, 0.1f, 0);
         }
 
         //Player State Machine
         switch (currentState)
         {
-            //Normal Player State
+            # region Normal Player State
             case playerState.normal:
 
                 isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, terrainMask);
@@ -126,8 +129,9 @@ public class PlayerController : MonoBehaviour
                 }
 
                 break;
+            #endregion
 
-            //Tongue Extention State
+            #region Tongue Extention State
             case playerState.extend:
                 isToungeCollide = Physics.CheckSphere(tongueTip.transform.position, tongueTip.transform.localScale.x,terrainMask);
 
@@ -179,9 +183,9 @@ public class PlayerController : MonoBehaviour
                     currentState = playerState.grapple;
                 }
                 break;
+            #endregion
 
-
-            //Grapple State
+            #region Grapple State
             case playerState.grapple:
                 isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
                 isTongueTouch = Physics.CheckSphere(wallCheck.position, wallDistance, tongueMask);
@@ -220,25 +224,17 @@ public class PlayerController : MonoBehaviour
 
                 }
                 break;
+            #endregion
 
+            #region Tumble State
             case playerState.tumble:
 
                 isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
-                //isGrounded = (Vector3.Angle(Vector3.up, hitNormal) <= slopeLimit);
-                //bool isGroundSlope = true;
-                
-                /*foreach(var collider in Physics.OverlapSphere(groundCheck.position, groundDistance, terrainMask))
-                {
-                    if (collider.transform.rotation.eulerAngles != Vector3.zero)
-                    {
-                        isGroundSlope = true;
-                    }
-                    else
-                    {
-                        isGroundSlope = false;
-                    }
-                }
-                */
+
+                tumbleRotate += 5.0f * facing;
+
+                artGroup.transform.rotation = Quaternion.Euler(0.0f, 0.0f, tumbleRotate);
+
                 slopeLimit = 5;
 
                 if (isWallTouch)
@@ -256,12 +252,15 @@ public class PlayerController : MonoBehaviour
                 {
                     slopeLimit = 50;
                     currentState = playerState.normal;
+                    tumbleRotate = 0;
+                    artGroup.transform.rotation = Quaternion.Euler(0.0f, 0.0f, tumbleRotate);
                 }
                 else
                 {
                     velocity.y += gravity * Time.deltaTime;
                 }
                 break;
+            #endregion
 
             case playerState.splat:
 
