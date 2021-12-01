@@ -299,7 +299,7 @@ public class PlayerController : MonoBehaviour
                 }
                 
 
-                if (isGrounded && !isGroundSlope && velocity.y < 0)
+                if (isGrounded && !isGroundSlope && velocity.y < 0 && isWallTouch)
                 {
                     slopeLimit = 50;
                     currentState = playerState.normal;
