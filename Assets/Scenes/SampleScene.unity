@@ -293,11 +293,11 @@ MonoBehaviour:
   airMoveSpeed: 0.05
   jumpHeight: 1
   gravity: -9.81
-  grappleAccel: 0.4
+  grappleAccel: 0.3
   tongueTip: {fileID: 1727017499}
   tongueBase: {fileID: 111056069}
   tongueExtendDuration: 0.25
-  tongueDistanceMax: 3
+  tongueDistanceMax: 1.5
   groundDistance: 0.1
   wallDistance: 0.2
 --- !u!1 &615416908

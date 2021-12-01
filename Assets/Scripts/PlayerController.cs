@@ -161,10 +161,20 @@ public class PlayerController : MonoBehaviour
             case playerState.grapple:
                 bool isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
                 bool isTongueTouch = Physics.CheckSphere(wallCheck.position, wallDistance, tongueMask);
+                
+                //When we are pulled to our tongue
                 if (transform.position == tongueStop || isTongueTouch)
                 {
-                    currentState = playerState.normal;
+                    //Change State
+                    currentState = playerState.tumble;
+
+                    //Reset Tongue
+                    tongueTip.transform.position = transform.position;
+                    tongueBase.transform.position = transform.position;
+                    tongueBase.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+                    tongueBase.transform.rotation = Quaternion.Euler(0, 0, 0);
                 }
+                //As we are pulling
                 else
                 {
                     velocity += new Vector3(grappleAccel * facing, grappleAccel, 0);
@@ -189,6 +199,25 @@ public class PlayerController : MonoBehaviour
 
             case playerState.tumble:
 
+                isWallTouch = Physics.CheckSphere(wallCheck.position, wallDistance, terrainMask);
+                isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, terrainMask);
+
+                controller.slopeLimit = 5;
+
+                if (isWallTouch)
+                {
+                    velocity.x *= -0.8f;
+                }
+
+                if (isGrounded)
+                {
+                    controller.slopeLimit = 45;
+                    currentState = playerState.normal;
+                }
+                else
+                {
+                    velocity.y += gravity * Time.deltaTime;
+                }
                 break;
 
             case playerState.splat:
