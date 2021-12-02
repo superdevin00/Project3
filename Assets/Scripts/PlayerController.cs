@@ -263,7 +263,7 @@ public class PlayerController : MonoBehaviour
                 //As we are pulling
                 else
                 {
-                    velocity += new Vector3(grappleAccel * facing, grappleAccel, 0);
+                    velocity += new Vector3(grappleAccel * facing, grappleAccel, 0) * Time.deltaTime;
                     tongueTip.transform.position = tongueStop;
 
                     Vector3 startPos = transform.position;
@@ -293,7 +293,7 @@ public class PlayerController : MonoBehaviour
 
                 
 
-                tumbleRotate += 5.0f ;
+                tumbleRotate += 500.0f * Time.deltaTime;
 
                 artGroup.transform.Rotate(0, 0, -tumbleRotate);
 
