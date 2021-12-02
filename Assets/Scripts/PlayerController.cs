@@ -84,6 +84,10 @@ public class PlayerController : MonoBehaviour
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
 
         //Turn art for facing value
         if (facing == 1)
@@ -360,10 +364,9 @@ public class PlayerController : MonoBehaviour
         
     private void FixedUpdate()
     {
-        if (isGroundSlope && isGrounded)
+        if (isGroundSlope && isGrounded) //Slide Down slope
         {
             velocity.x += (1f - hitNormal.y) * hitNormal.x * (1f - slideFriction);
-            //inpRes.speed.z += (1f - hitNormal.y) * hitNormal.z * (1f - slideFriction);
         }
         //Move
         controller.Move(velocity * Time.deltaTime);
