@@ -191,9 +191,18 @@ public class PlayerController : MonoBehaviour
                     if (tongueTip.transform.position == tongueEndPosition)
                     {
                         //Change State
-                        currentState = playerState.tumble;
+                        if (isGrounded)
+                        {
+                            currentState = playerState.normal;
+                        }
+                        else
+                        {
+                            currentState = playerState.tumble;
+                        }
 
                         //Reset Tongue
+                        isWallTouch = false;
+                        isTongueTouch = false;
                         tongueTip.transform.position = transform.position;
                         tongueBase.transform.position = transform.position;
                         tongueBase.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
@@ -287,7 +296,7 @@ public class PlayerController : MonoBehaviour
                 slopeLimit = 5;
 
                 //Check for bounces
-                if (isWallTouch && isWallNormal &&  !isGroundSlope)//Wall bounce
+                if (isWallTouch && isWallNormal && !isGroundSlope && !isGrounded)//Wall bounce
                 {
                     velocity.x *= -0.6f;
                     facing = facing * -1;

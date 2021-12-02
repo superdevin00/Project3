@@ -493,7 +493,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 480048882}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.59, y: 11.31, z: 0}
+  m_LocalPosition: {x: -3.56, y: 0.95, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 620218391}
@@ -549,6 +549,12 @@ MonoBehaviour:
     type: 3}
   tongueTouchPart: {fileID: 6934819034467843767, guid: 66e2cc9294e13bd409c27df8eb4b0727,
     type: 3}
+  landSound: {fileID: 8300000, guid: aba327d6cf9ca13478554c715b7263e4, type: 3}
+  impactSound: {fileID: 8300000, guid: f6bbc5f72216f104a9dc810d0f71c5a8, type: 3}
+  extendSound: {fileID: 8300000, guid: ec53f175ee979034f92535391c673493, type: 3}
+  tongueImpactSound: {fileID: 8300000, guid: a6bce8c541c84704797723c7fc056648, type: 3}
+  jumpSound: {fileID: 8300000, guid: af061aff437df1b41b07e00790d95431, type: 3}
+  sfxVolume: 5
   moveSpeed: 2
   airMoveSpeed: 0.05
   jumpHeight: 0.7
@@ -2542,7 +2548,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 1ff3653505cc4424da8a39d6aceb9738, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.02
+  m_Volume: 0.01
   m_Pitch: 1
   Loop: 1
   Mute: 0
